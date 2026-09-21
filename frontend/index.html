@@ -1,0 +1,1150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#182c52">
+<title>HRVerse - AI HR Assistant</title>
+
+<script>
+/* Apply the saved theme before first paint so the page never flashes the wrong colours. */
+(function () {
+    var theme = "light";
+    try {
+        theme = localStorage.getItem("hrverse.theme") ||
+            (window.matchMedia && matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+    } catch (e) {}
+    document.documentElement.setAttribute("data-theme", theme);
+})();
+</script>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&family=Newsreader:opsz,wght@6..72,400;6..72,600&display=swap" rel="stylesheet">
+
+<style>
+:root {
+    /* Light theme. Navy and orange come from the project presentation. */
+    --bg: #f3f5f8;
+    --surface: #ffffff;
+    --text: #172033;
+    --muted: #5d6780;
+    --line: #d5dbe6;
+    --tint: #e7ecf5;
+    --icon: #23417a;
+    --rule: #182c52;
+    --user-bg: #182c52;
+    --user-text: #ffffff;
+    --side: #182c52;
+    --side-text: #dbe3f2;
+    --side-raised: #23417a;
+    --orange: #f28c28;
+    --orange-dark: #d9770f;
+    --navy: #182c52;
+    --tab-bg: #ffffff;
+    --tab-text: #5d6780;
+    --tab-active: #182c52;
+
+    --serif: "Newsreader", Georgia, "Times New Roman", serif;
+    --sans: "Figtree", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+
+    --column: 760px;
+    --wide: 940px;
+}
+
+:root[data-theme="dark"] {
+    --bg: #0d1524;
+    --surface: #15213a;
+    --text: #e8eef9;
+    --muted: #9daac4;
+    --line: #2a3a5a;
+    --tint: #1e3054;
+    --icon: #9db8f0;
+    --rule: #5c7fcb;
+    --user-bg: #23417a;
+    --user-text: #ffffff;
+    --side: #0a101d;
+    --side-text: #c9d4ea;
+    --side-raised: #16233b;
+    --tab-bg: #0a101d;
+    --tab-text: #9daac4;
+    --tab-active: #f28c28;
+}
+
+* { box-sizing: border-box; }
+html, body { height: 100%; }
+
+body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    font-size: 16px;
+    -webkit-font-smoothing: antialiased;
+}
+
+button, input { font: inherit; color: inherit; }
+button { cursor: pointer; }
+[hidden] { display: none !important; }
+
+.sr-only {
+    position: absolute;
+    width: 1px; height: 1px;
+    margin: -1px; padding: 0;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+:focus-visible { outline: 3px solid var(--orange); outline-offset: 2px; }
+
+.icon {
+    width: 20px; height: 20px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    flex: none;
+}
+
+/* ================= App shell (desktop first) ================= */
+.app {
+    display: grid;
+    grid-template-columns: 272px minmax(0, 1fr);
+    height: 100vh;
+    height: 100dvh;
+}
+
+.side {
+    background: var(--side);
+    color: var(--side-text);
+    padding: 30px 20px 22px;
+    display: flex;
+    flex-direction: column;
+    gap: 28px;
+    overflow-y: auto;
+}
+
+.wordmark {
+    margin: 0;
+    font-family: var(--serif);
+    font-weight: 600;
+    font-size: 32px;
+    line-height: 1;
+    letter-spacing: -0.01em;
+    color: #fff;
+}
+.tagline { margin: 8px 0 0; font-size: 14px; }
+
+/* Navigation: sidebar on desktop, bottom bar on phones */
+.tabs { display: flex; flex-direction: column; gap: 4px; }
+
+.tab {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    padding: 11px 12px;
+    background: transparent;
+    border: 0;
+    border-radius: 10px;
+    color: var(--side-text);
+    font-size: 15px;
+    text-align: left;
+}
+.tab:hover { background: rgba(255, 255, 255, 0.08); color: #fff; }
+.tab[aria-current="page"] { background: rgba(255, 255, 255, 0.13); color: #fff; font-weight: 600; }
+.tab[aria-current="page"]::before {
+    content: "";
+    position: absolute;
+    left: 0; top: 9px; bottom: 9px;
+    width: 3px;
+    border-radius: 3px;
+    background: var(--orange);
+}
+.tab.new {
+    margin-top: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.tools { margin-top: auto; display: flex; flex-direction: column; gap: 14px; }
+
+/* Employee ID badge */
+.badge {
+    position: relative;
+    background: var(--side-raised);
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    border-radius: 14px;
+    padding: 28px 16px 14px;
+}
+.badge::before {
+    content: "";
+    position: absolute;
+    top: 10px; left: 50%;
+    width: 42px; height: 8px;
+    margin-left: -21px;
+    border-radius: 6px;
+    background: var(--side);
+    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.4);
+}
+.badge label { display: block; font-size: 13px; }
+.badge input {
+    width: 100%;
+    margin-top: 4px;
+    padding: 4px 0 6px;
+    background: transparent;
+    border: 0;
+    border-bottom: 2px solid rgba(255, 255, 255, 0.35);
+    border-radius: 0;
+    color: #fff;
+    font-size: 24px;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.02em;
+}
+.badge input::placeholder { color: rgba(255, 255, 255, 0.4); font-weight: 400; }
+.badge input:focus { outline: none; border-bottom-color: var(--orange); }
+.badge .hint { margin: 8px 0 0; font-size: 12.5px; opacity: 0.8; }
+
+.theme {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    background: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 10px;
+    color: #fff;
+    font-size: 14px;
+}
+.theme:hover { background: rgba(255, 255, 255, 0.1); }
+.theme .sun { display: none; }
+:root[data-theme="dark"] .theme .sun { display: block; }
+:root[data-theme="dark"] .theme .moon { display: none; }
+.theme[aria-pressed="true"] { background: rgba(255, 255, 255, 0.16); }
+.voice-toggle .off { display: block; }
+.voice-toggle .on { display: none; }
+.voice-toggle[aria-pressed="true"] .off { display: none; }
+.voice-toggle[aria-pressed="true"] .on { display: block; }
+
+/* ================= Main area ================= */
+.main {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    min-height: 0;
+    height: 100vh;
+    height: 100dvh;
+}
+
+.view {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+}
+.view[hidden] { display: none; }
+
+/* ---------- Home ---------- */
+.home {
+    padding: 44px max(20px, calc((100% - var(--wide)) / 2)) 28px;
+}
+
+.home h2 {
+    margin: 0;
+    font-family: var(--serif);
+    font-weight: 600;
+    font-size: 42px;
+    line-height: 1.1;
+    letter-spacing: -0.015em;
+}
+.lead { margin: 12px 0 0; max-width: 52ch; color: var(--muted); font-size: 17px; line-height: 1.5; }
+
+.group-title {
+    margin: 36px 0 12px;
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--muted);
+}
+
+.cards {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 168px), 1fr));
+    gap: 12px;
+}
+
+.card {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+    width: 100%;
+    height: 100%;
+    padding: 16px;
+    text-align: left;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+}
+.card:hover:not(:disabled) { border-color: var(--icon); }
+.card:disabled { cursor: default; background: transparent; border-style: dashed; }
+
+.card .tile {
+    display: grid;
+    place-items: center;
+    width: 40px; height: 40px;
+    border-radius: 10px;
+    background: var(--tint);
+    color: var(--icon);
+}
+.card:disabled .tile { color: var(--muted); }
+.card .name { font-weight: 600; font-size: 16px; line-height: 1.25; }
+.card .desc { color: var(--muted); font-size: 14px; line-height: 1.4; }
+.card .soon {
+    margin-top: auto;
+    padding: 2px 8px;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    color: var(--muted);
+    font-size: 12px;
+}
+
+/* ---------- Conversation ---------- */
+.log {
+    display: flex;
+    flex-direction: column;
+    gap: 26px;
+    padding: 34px max(20px, calc((100% - var(--column)) / 2)) 24px;
+}
+
+.msg { max-width: min(64ch, 100%); }
+.body { white-space: pre-wrap; overflow-wrap: anywhere; }   /* keeps line breaks in replies */
+.meta { margin-top: 6px; font-size: 12.5px; color: var(--muted); }
+
+.msg.bot {
+    align-self: flex-start;
+    border-left: 3px solid var(--rule);
+    padding-left: 16px;
+}
+.msg.bot .body { font-family: var(--serif); font-size: 18px; line-height: 1.55; }
+.msg.bot.error { border-left-color: var(--orange); }
+
+.msg.user { align-self: flex-end; text-align: right; }
+.msg.user .body {
+    display: inline-block;
+    text-align: left;
+    padding: 11px 17px;
+    border-radius: 18px 18px 4px 18px;
+    background: var(--user-bg);
+    color: var(--user-text);
+    font-size: 16px;
+    line-height: 1.45;
+}
+
+.actions { display: flex; gap: 4px; margin-top: 6px; margin-left: -8px; }
+.act {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 8px;
+    background: transparent;
+    border: 0;
+    border-radius: 8px;
+    color: var(--muted);
+    font-size: 13px;
+}
+.act .icon { width: 16px; height: 16px; }
+.act:hover { background: var(--tint); color: var(--text); }
+.act[aria-pressed="true"] { color: var(--icon); background: var(--tint); }
+.act.down .icon { transform: scaleY(-1); }
+
+.dots { display: inline-flex; gap: 5px; padding: 8px 0; }
+.dots span {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--rule);
+    opacity: 0.25;
+    animation: pulse 1.2s infinite ease-in-out;
+}
+.dots span:nth-child(2) { animation-delay: 0.18s; }
+.dots span:nth-child(3) { animation-delay: 0.36s; }
+@keyframes pulse { 0%, 80%, 100% { opacity: 0.25; } 40% { opacity: 1; } }
+
+/* ---------- Composer ---------- */
+.composer {
+    display: flex;
+    gap: 10px;
+    padding: 12px max(20px, calc((100% - var(--column)) / 2)) calc(18px + env(safe-area-inset-bottom, 0px));
+    background: var(--bg);
+    border-top: 1px solid var(--line);
+}
+.composer input {
+    flex: 1;
+    min-width: 0;
+    padding: 14px 16px;
+    font-size: 16px;                 /* 16px stops iOS zooming on focus */
+    background: var(--surface);
+    border: 1.5px solid var(--line);
+    border-radius: 12px;
+}
+.composer input:focus {
+    outline: none;
+    border-color: var(--icon);
+    box-shadow: 0 0 0 3px rgba(35, 65, 122, 0.18);
+}
+.composer input::placeholder { color: var(--muted); }
+
+.send {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 0 22px;
+    border: 0;
+    border-radius: 12px;
+    background: var(--orange);
+    color: #182c52;
+    font-weight: 700;
+}
+.send:hover:not(:disabled) { background: var(--orange-dark); }
+.send:disabled { opacity: 0.5; cursor: default; }
+
+/* Voice input */
+.mic {
+    flex: none;
+    width: 50px;
+    display: grid;
+    place-items: center;
+    background: var(--surface);
+    border: 1.5px solid var(--line);
+    border-radius: 12px;
+    color: var(--icon);
+}
+.mic:hover { border-color: var(--icon); }
+.mic[aria-pressed="true"] {
+    background: var(--orange);
+    border-color: var(--orange);
+    color: #182c52;
+    animation: ring 1.4s infinite;
+}
+@keyframes ring {
+    0%   { box-shadow: 0 0 0 0 rgba(242, 140, 40, 0.55); }
+    100% { box-shadow: 0 0 0 12px rgba(242, 140, 40, 0); }
+}
+
+.voice-status {
+    padding: 10px max(20px, calc((100% - var(--column)) / 2)) 0;
+    background: var(--bg);
+    color: var(--muted);
+    font-size: 14px;
+}
+
+/* ================= Phones and narrow windows ================= */
+@media (max-width: 860px) {
+    .app {
+        grid-template-columns: minmax(0, 1fr) auto;
+        grid-template-rows: auto minmax(0, 1fr) auto;
+        grid-template-areas:
+            "brand tools"
+            "main  main"
+            "tabs  tabs";
+    }
+
+    .side { display: contents; }
+
+    .brand {
+        grid-area: brand;
+        background: var(--side);
+        padding: calc(12px + env(safe-area-inset-top, 0px)) 0 12px 16px;
+        align-self: stretch;
+        display: flex;
+        align-items: center;
+    }
+    .wordmark { font-size: 24px; }
+    .tagline { display: none; }
+
+    .tools {
+        grid-area: tools;
+        margin: 0;
+        flex-direction: row;
+        align-items: center;
+        gap: 8px;
+        background: var(--side);
+        padding: calc(12px + env(safe-area-inset-top, 0px)) 16px 12px 8px;
+        align-self: stretch;
+    }
+
+    .badge { background: transparent; border: 0; border-radius: 0; padding: 0; }
+    .badge::before, .badge .hint { display: none; }
+    .badge label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0, 0, 0, 0); }
+    .badge input {
+        width: 116px;
+        margin: 0;
+        padding: 8px 10px;
+        font-size: 16px;
+        font-weight: 500;
+        background: rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        border-radius: 8px;
+    }
+
+    .theme { padding: 8px; }
+    .theme span { display: none; }
+
+    .main { grid-area: main; height: auto; }
+
+    .tabs {
+        grid-area: tabs;
+        flex-direction: row;
+        gap: 0;
+        background: var(--tab-bg);
+        border-top: 1px solid var(--line);
+        padding: 4px 8px calc(4px + env(safe-area-inset-bottom, 0px));
+    }
+    .tab {
+        flex: 1;
+        flex-direction: column;
+        justify-content: center;
+        gap: 3px;
+        padding: 7px 4px;
+        font-size: 12.5px;
+        text-align: center;
+        color: var(--tab-text);
+    }
+    .tab:hover { background: transparent; color: var(--tab-active); }
+    .tab[aria-current="page"] { background: transparent; color: var(--tab-active); }
+    .tab[aria-current="page"]::before { left: 30%; right: 30%; top: 0; bottom: auto; width: auto; height: 3px; }
+    .tab.new { margin: 0; border: 0; }
+
+    .home { padding-top: 26px; }
+    .home h2 { font-size: 32px; }
+    .lead { font-size: 16px; }
+    .cards { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .card { padding: 14px; }
+
+    .log { padding-top: 22px; gap: 22px; }
+    .msg.bot .body { font-size: 17px; }
+    .send .label { display: none; }
+    .send { padding: 0 16px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .dots span { animation: none; opacity: 0.6; }
+    .mic[aria-pressed="true"] { animation: none; box-shadow: 0 0 0 4px rgba(242, 140, 40, 0.35); }
+}
+</style>
+</head>
+
+<body>
+
+<!-- Icon sprite -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <defs>
+        <symbol id="i-home" viewBox="0 0 24 24"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/><path d="M10 20v-6h4v6"/></symbol>
+        <symbol id="i-chat" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2Z"/></symbol>
+        <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+        <symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></symbol>
+        <symbol id="i-moon" viewBox="0 0 24 24"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z"/></symbol>
+        <symbol id="i-send" viewBox="0 0 24 24"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></symbol>
+        <symbol id="i-copy" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></symbol>
+        <symbol id="i-thumb" viewBox="0 0 24 24"><path d="M7 10v12"/><path d="M15 5.9 14 10h5.8a2 2 0 0 1 1.9 2.5l-2.3 8a2 2 0 0 1-1.9 1.5H7V10l4.1-7.6A2 2 0 0 1 13 3.5c1.1.4 2 1.4 2 2.4Z"/></symbol>
+
+        <symbol id="i-mic" viewBox="0 0 24 24"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2M12 19v3"/></symbol>
+        <symbol id="i-volume" viewBox="0 0 24 24"><path d="M11 5 6 9H2v6h4l5 4Z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M19 5a10 10 0 0 1 0 14"/></symbol>
+        <symbol id="i-volume-x" viewBox="0 0 24 24"><path d="M11 5 6 9H2v6h4l5 4Z"/><path d="m22 9-6 6M16 9l6 6"/></symbol>
+        <symbol id="i-calendar" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></symbol>
+        <symbol id="i-pencil" viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></symbol>
+        <symbol id="i-laptop" viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="11" rx="2"/><path d="M2 20h20"/></symbol>
+        <symbol id="i-hourglass" viewBox="0 0 24 24"><path d="M6 2h12M6 22h12M7 2v4l5 6-5 6v4M17 2v4l-5 6 5 6v4"/></symbol>
+        <symbol id="i-heart" viewBox="0 0 24 24"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1-1.1a5.5 5.5 0 0 0-7.8 7.8l1 1.1L12 21l7.8-7.5 1-1.1a5.5 5.5 0 0 0 0-7.8Z"/></symbol>
+        <symbol id="i-cash" viewBox="0 0 24 24"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2.5"/><path d="M6 12h.01M18 12h.01"/></symbol>
+        <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></symbol>
+        <symbol id="i-phone" viewBox="0 0 24 24"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.7a2 2 0 0 1-.5 2.1L8 9.8a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.7.7a2 2 0 0 1 1.7 2Z"/></symbol>
+        <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z"/><path d="m9 12 2 2 4-4"/></symbol>
+        <symbol id="i-scale" viewBox="0 0 24 24"><path d="M12 3v18M7 21h10M5 7h14"/><path d="M5 7l-3 7a3 3 0 0 0 6 0Z"/><path d="M19 7l-3 7a3 3 0 0 0 6 0Z"/></symbol>
+        <symbol id="i-pie" viewBox="0 0 24 24"><path d="M21 12A9 9 0 1 1 12 3"/><path d="M21 12h-9V3a9 9 0 0 1 9 9Z"/></symbol>
+        <symbol id="i-buoy" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="4"/><path d="M4.9 4.9l4.3 4.3M14.8 14.8l4.3 4.3M14.8 9.2l4.3-4.3M4.9 19.1l4.3-4.3"/></symbol>
+        <symbol id="i-file" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6M8 13h8M8 17h8"/></symbol>
+    </defs>
+</svg>
+
+<div class="app">
+
+    <aside class="side">
+        <div class="brand">
+            <div>
+                <h1 class="wordmark">HRVerse</h1>
+                <p class="tagline">Internal HR assistant</p>
+            </div>
+        </div>
+
+        <nav class="tabs" aria-label="Main">
+            <button type="button" class="tab" id="tabHome" aria-current="page">
+                <svg class="icon" aria-hidden="true"><use href="#i-home"/></svg>Home
+            </button>
+            <button type="button" class="tab" id="tabChat">
+                <svg class="icon" aria-hidden="true"><use href="#i-chat"/></svg>Chat
+            </button>
+            <button type="button" class="tab new" id="tabNew">
+                <svg class="icon" aria-hidden="true"><use href="#i-plus"/></svg>New chat
+            </button>
+        </nav>
+
+        <div class="tools">
+            <section class="badge" aria-label="Employee badge">
+                <label for="employeeId">Employee ID</label>
+                <input type="text" id="employeeId" inputmode="numeric" autocomplete="off" placeholder="Employee ID">
+                <p class="hint">Optional for now</p>
+            </section>
+
+            <button type="button" class="theme voice-toggle" id="voiceBtn" aria-pressed="false" aria-label="Read answers aloud" hidden>
+                <svg class="icon on" aria-hidden="true"><use href="#i-volume"/></svg>
+                <svg class="icon off" aria-hidden="true"><use href="#i-volume-x"/></svg>
+                <span id="voiceLabel">Voice replies: off</span>
+            </button>
+
+            <button type="button" class="theme" id="themeBtn">
+                <svg class="icon moon" aria-hidden="true"><use href="#i-moon"/></svg>
+                <svg class="icon sun" aria-hidden="true"><use href="#i-sun"/></svg>
+                <span id="themeLabel">Dark theme</span>
+            </button>
+        </div>
+    </aside>
+
+    <main class="main">
+
+        <section class="view home" id="homeView" aria-label="Home">
+            <h2>How can I help today?</h2>
+            <p class="lead">Ask about company HR policies in your own words, or start with one of these topics.</p>
+
+            <h3 class="group-title">Common questions</h3>
+            <ul class="cards" id="topicCards"></ul>
+
+            <h3 class="group-title">Coming soon</h3>
+            <ul class="cards" id="soonCards"></ul>
+        </section>
+
+        <section class="view" id="chatView" aria-label="Chat" hidden>
+            <div class="log" id="log" role="log" aria-live="polite" aria-label="Conversation"></div>
+        </section>
+
+        <div class="voice-status" id="voiceStatus" role="status" aria-live="polite" hidden></div>
+
+        <form class="composer" id="composer" autocomplete="off">
+            <label for="messageInput" class="sr-only">Your question</label>
+            <input type="text" id="messageInput" placeholder="Ask an HR question" enterkeyhint="send">
+            <button type="button" class="mic" id="micBtn" aria-label="Speak your question" aria-pressed="false" hidden>
+                <svg class="icon" aria-hidden="true"><use href="#i-mic"/></svg>
+            </button>
+            <button type="submit" class="send" id="sendBtn" aria-label="Send">
+                <span class="label">Send</span>
+                <svg class="icon" aria-hidden="true"><use href="#i-send"/></svg>
+            </button>
+        </form>
+
+    </main>
+
+</div>
+
+<script>
+// Topics on the home screen. Clicking one sends the full question to the bot.
+const TOPICS = [
+    { icon: "calendar",  name: "Leave policy",     desc: "Casual, sick and maternity leave",  question: "What is the leave policy?" },
+    { icon: "pencil",    name: "Apply for leave",  desc: "Steps to submit a request",         question: "How do I apply for leave?" },
+    { icon: "laptop",    name: "Work from home",   desc: "How many days and who approves",    question: "Can I work from home?" },
+    { icon: "hourglass", name: "Probation period", desc: "Length and confirmation review",    question: "What is the probation period?" },
+    { icon: "heart",     name: "Benefits",         desc: "Insurance and wellness cover",      question: "What benefits do employees get?" },
+    { icon: "cash",      name: "Salary",           desc: "When it is credited each month",    question: "When is salary paid?" },
+    { icon: "clock",     name: "Working hours",    desc: "Standard office timings",           question: "What are the working hours?" },
+    { icon: "phone",     name: "Contact HR",       desc: "Email, phone and office",           question: "How do I contact HR?" },
+    { icon: "shield",    name: "Code of conduct",  desc: "Professional behaviour and ethics", question: "What is the code of conduct?" },
+    { icon: "scale",     name: "Legal compliance", desc: "Regulations the company follows",   question: "What are the legal regulations?" }
+];
+
+// Features planned for later steps. Shown so people know what is coming, but not clickable.
+const SOON = [
+    { icon: "pie",   name: "Leave balance",   desc: "Your remaining leaves, by type" },
+    { icon: "buoy",  name: "Raise an HR case", desc: "Report an issue to the HR team" },
+    { icon: "file",  name: "Policy documents", desc: "Ask questions from uploaded PDFs" }
+];
+
+const WELCOME = "Hello! I'm the HRVerse assistant. Ask me about leave, work from home, probation, benefits, or how to reach HR.";
+const ERROR_TEXT = "Can't reach the HR assistant. Check that the server is running, then send your message again.";
+const EMPTY_TEXT = "I didn't get an answer for that. Try rephrasing your question.";
+const API_URL = window.location.protocol === "file:" ? "http://127.0.0.1:8000/chat" : "/chat";
+const ID_KEY = "hrverse.employeeId";
+const THEME_KEY = "hrverse.theme";
+const FEEDBACK_KEY = "hrverse.feedback";
+
+const $ = function (id) { return document.getElementById(id); };
+const log = $("log");
+const messageInput = $("messageInput");
+const sendBtn = $("sendBtn");
+const employeeInput = $("employeeId");
+
+let busy = false;
+let view = "home";
+
+/* ---------- helpers ---------- */
+function icon(name) {
+    const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    svg.setAttribute("class", "icon");
+    svg.setAttribute("aria-hidden", "true");
+    const use = document.createElementNS("http://www.w3.org/2000/svg", "use");
+    use.setAttribute("href", "#i-" + name);
+    svg.appendChild(use);
+    return svg;
+}
+
+function timeNow() {
+    return new Date().toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
+}
+
+function scrollToEnd() {
+    $("chatView").scrollTop = $("chatView").scrollHeight;
+}
+
+/* ---------- views ---------- */
+function setView(name) {
+    view = name;
+    $("homeView").hidden = name !== "home";
+    $("chatView").hidden = name !== "chat";
+    setCurrent($("tabHome"), name === "home");
+    setCurrent($("tabChat"), name === "chat");
+    if (name === "chat") scrollToEnd();
+}
+
+function setCurrent(btn, on) {
+    if (on) btn.setAttribute("aria-current", "page");
+    else btn.removeAttribute("aria-current");
+}
+
+/* ---------- messages ---------- */
+// Text goes in with textContent (never innerHTML), so typed text can't inject markup.
+function addMessage(text, sender, opts) {
+    opts = opts || {};
+    const wrap = document.createElement("div");
+    wrap.className = "msg " + sender + (opts.error ? " error" : "");
+
+    const body = document.createElement("div");
+    body.className = "body";
+    body.textContent = text;
+
+    const meta = document.createElement("div");
+    meta.className = "meta";
+    meta.textContent = (sender === "user" ? "You" : "HRVerse") + ", " + timeNow();
+
+    wrap.append(body, meta);
+    if (sender === "bot" && !opts.error && !opts.plain) wrap.appendChild(buildActions(text, opts.question));
+
+    log.appendChild(wrap);
+    scrollToEnd();
+    return wrap;
+}
+
+function buildActions(answer, question) {
+    const row = document.createElement("div");
+    row.className = "actions";
+
+    const copy = actionButton("copy", "Copy", "Copy answer");
+    copy.addEventListener("click", function () { copyText(answer, copy); });
+
+    const up = actionButton("thumb", "", "Good answer");
+    const down = actionButton("thumb", "", "Bad answer");
+    down.classList.add("down");
+    up.setAttribute("aria-pressed", "false");
+    down.setAttribute("aria-pressed", "false");
+
+    function rate(btn, other, value) {
+        const on = btn.getAttribute("aria-pressed") !== "true";
+        btn.setAttribute("aria-pressed", String(on));
+        other.setAttribute("aria-pressed", "false");
+        saveFeedback(question, answer, on ? value : null);
+    }
+    up.addEventListener("click", function () { rate(up, down, "up"); });
+    down.addEventListener("click", function () { rate(down, up, "down"); });
+
+    row.append(copy);
+    if (synth) {
+        const listen = actionButton("volume", "Listen", "Listen to answer");
+        listen.classList.add("listen");
+        listen.setAttribute("aria-pressed", "false");
+        listen.addEventListener("click", function () {
+            if (speakingBtn === listen) stopSpeaking();
+            else speak(answer, listen);
+        });
+        row.append(listen);
+    }
+    row.append(up, down);
+    return row;
+}
+
+function actionButton(iconName, label, aria) {
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "act";
+    btn.setAttribute("aria-label", aria);
+    btn.appendChild(icon(iconName));
+    if (label) {
+        const span = document.createElement("span");
+        span.textContent = label;
+        btn.appendChild(span);
+    }
+    return btn;
+}
+
+function copyText(text, btn) {
+    const label = btn.querySelector("span");
+    function done() {
+        label.textContent = "Copied";
+        setTimeout(function () { label.textContent = "Copy"; }, 1500);
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(done, function () {});
+    }
+}
+
+// Ratings are kept in this browser for now. Sending them to the backend is a later step.
+function saveFeedback(question, answer, rating) {
+    try {
+        const all = JSON.parse(localStorage.getItem(FEEDBACK_KEY) || "[]");
+        all.push({ question: question || "", answer: answer, rating: rating, time: new Date().toISOString() });
+        localStorage.setItem(FEEDBACK_KEY, JSON.stringify(all.slice(-200)));
+    } catch (e) { /* storage unavailable: ignore */ }
+}
+
+function showTyping() {
+    const wrap = document.createElement("div");
+    wrap.className = "msg bot";
+    wrap.id = "typing";
+    wrap.setAttribute("aria-label", "HRVerse is typing");
+    const dots = document.createElement("div");
+    dots.className = "dots";
+    dots.innerHTML = "<span></span><span></span><span></span>";
+    wrap.appendChild(dots);
+    log.appendChild(wrap);
+    scrollToEnd();
+}
+
+function removeTyping() {
+    const typing = $("typing");
+    if (typing) typing.remove();
+}
+
+function setBusy(state) {
+    busy = state;
+    sendBtn.disabled = state;
+    document.querySelectorAll(".card[data-question]").forEach(function (btn) { btn.disabled = state; });
+}
+
+/* ---------- talking to the backend ---------- */
+async function send(text, opts) {
+    opts = opts || {};
+    text = text.trim();
+    if (!text || busy) return;
+
+    cancelListening();
+    stopSpeaking();
+    setBusy(true);
+    setView("chat");
+    addMessage(text, "user");
+    messageInput.value = "";
+    showTyping();
+
+    try {
+        const response = await fetch(API_URL, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ employee_id: employeeInput.value.trim(), message: text })
+        });
+        if (!response.ok) throw new Error("HTTP " + response.status);
+
+        const data = await response.json();
+        removeTyping();
+        if (data.response) {
+            const wrap = addMessage(data.response, "bot", { question: text });
+            // Spoken question -> spoken answer. Typed questions are read aloud only if "Voice replies" is on.
+            if (opts.voice || voiceReplies) speak(data.response, wrap.querySelector(".act.listen"));
+        } else {
+            addMessage(EMPTY_TEXT, "bot", { plain: true });
+        }
+
+    } catch (error) {
+        removeTyping();
+        addMessage(ERROR_TEXT, "bot", { error: true });
+    } finally {
+        setBusy(false);
+        if (!opts.voice) messageInput.focus();
+    }
+}
+
+function newChat() {
+    cancelListening();
+    stopSpeaking();
+    log.textContent = "";
+    addMessage(WELCOME, "bot", { plain: true });
+    setView("home");
+    $("homeView").scrollTop = 0;
+    messageInput.focus();
+}
+
+/* ---------- voice: speech in (microphone) and speech out (read aloud) ---------- */
+// Uses the browser's built-in speech features (Chrome and Edge). No API key and no backend change.
+// Speech recognition in Chrome sends the audio to Google's servers, so it needs an internet connection.
+const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
+const synth = window.speechSynthesis;
+const VOICE_LANG = "en-IN";
+const VOICE_KEY = "hrverse.voiceReplies";
+const VOICE_ERRORS = {
+    "not-allowed": "Microphone access is blocked. Allow the microphone for this site in the address bar, then try again.",
+    "service-not-allowed": "Microphone access is blocked. Allow the microphone for this site in the address bar, then try again.",
+    "no-speech": "I didn't hear anything. Tap the mic and try again.",
+    "audio-capture": "No microphone found. Plug one in or check your sound settings.",
+    "network": "Voice input needs an internet connection. Check your connection or type your question."
+};
+
+let recognition = null;
+let listening = false;
+let voiceReplies = false;
+let speakingBtn = null;
+let currentUtterance = null;
+let statusTimer = null;
+
+function showStatus(text, hideAfterMs) {
+    const el = $("voiceStatus");
+    clearTimeout(statusTimer);
+    el.textContent = text;
+    el.hidden = false;
+    if (hideAfterMs) statusTimer = setTimeout(hideStatus, hideAfterMs);
+}
+
+function hideStatus() {
+    clearTimeout(statusTimer);
+    $("voiceStatus").hidden = true;
+}
+
+function setListening(on) {
+    listening = on;
+    const mic = $("micBtn");
+    mic.setAttribute("aria-pressed", String(on));
+    mic.setAttribute("aria-label", on ? "Stop listening" : "Speak your question");
+    messageInput.placeholder = on ? "Listening..." : "Ask an HR question";
+}
+
+function startListening() {
+    if (!SpeechRec || busy || listening) return;
+    stopSpeaking();
+
+    let heard = "";
+    let failed = false;
+    const rec = new SpeechRec();
+    recognition = rec;
+    rec.lang = VOICE_LANG;
+    rec.interimResults = true;
+    rec.continuous = false;
+    rec.maxAlternatives = 1;
+
+    rec.onstart = function () { setListening(true); showStatus("Listening..."); };
+
+    rec.onresult = function (event) {
+        heard = "";
+        for (let i = 0; i < event.results.length; i++) heard += event.results[i][0].transcript;
+        messageInput.value = heard;        // shows what you are saying as you speak
+    };
+
+    rec.onerror = function (event) {
+        if (event.error === "aborted") return;
+        failed = true;
+        showStatus(VOICE_ERRORS[event.error] || "Voice input stopped (" + event.error + "). Type your question instead.", 7000);
+    };
+
+    rec.onend = function () {
+        recognition = null;
+        setListening(false);
+        const text = heard.trim();
+        if (text && !failed) {
+            hideStatus();
+            send(text, { voice: true });    // spoken question -> spoken answer
+        } else if (!failed) {
+            showStatus(VOICE_ERRORS["no-speech"], 5000);
+        }
+    };
+
+    try { rec.start(); } catch (e) { recognition = null; setListening(false); }
+}
+
+function stopListening() {                  // user tapped the mic again: finish and send what was heard
+    if (recognition) recognition.stop();
+}
+
+function cancelListening() {                // abandon without sending (used when something else is sent)
+    if (!recognition) return;
+    const rec = recognition;
+    recognition = null;
+    rec.onend = rec.onresult = rec.onerror = null;
+    try { rec.abort(); } catch (e) {}
+    setListening(false);
+    hideStatus();
+}
+
+// Make a reply sound natural: read emails as "name at company dot com", drop emojis and bullets.
+function cleanForSpeech(text) {
+    return text
+        .replace(/([\w.+-]+)@([\w-]+(?:\.[\w-]+)+)/g, function (m, user, domain) {
+            return user + " at " + domain.replace(/\./g, " dot ");
+        })
+        .replace(/\p{Extended_Pictographic}|\uFE0F/gu, "")
+        .replace(/\u2022/g, "")
+        .replace(/(\d)-(?=\d)/g, "$1 ")
+        .replace(/\s*\n+\s*/g, ". ")
+        .replace(/([:.])\s*\.\s*/g, "$1 ")
+        .replace(/\s{2,}/g, " ")
+        .trim();
+}
+
+function markListen(btn, on) {
+    btn.setAttribute("aria-pressed", String(on));
+    btn.setAttribute("aria-label", on ? "Stop reading aloud" : "Listen to answer");
+    const label = btn.querySelector("span");
+    if (label) label.textContent = on ? "Stop" : "Listen";
+}
+
+function setSpeaking(btn) {
+    if (speakingBtn && speakingBtn !== btn) markListen(speakingBtn, false);
+    speakingBtn = btn;
+    if (btn) markListen(btn, true);
+}
+
+function speak(text, btn) {
+    if (!synth) return;
+    stopSpeaking();
+
+    const utter = new SpeechSynthesisUtterance(cleanForSpeech(text));
+    utter.lang = VOICE_LANG;
+    const voices = synth.getVoices ? synth.getVoices() : [];
+    const voice = voices.find(function (v) { return v.lang === VOICE_LANG; }) ||
+                  voices.find(function (v) { return v.lang && v.lang.indexOf("en") === 0; });
+    if (voice) utter.voice = voice;
+
+    currentUtterance = utter;
+    function finished() { if (currentUtterance === utter) { currentUtterance = null; setSpeaking(null); } }
+    utter.onend = finished;
+    utter.onerror = finished;
+
+    setSpeaking(btn || null);
+    synth.speak(utter);
+}
+
+function stopSpeaking() {
+    currentUtterance = null;
+    if (synth) synth.cancel();
+    setSpeaking(null);
+}
+
+function setVoiceReplies(on) {
+    voiceReplies = on;
+    $("voiceBtn").setAttribute("aria-pressed", String(on));
+    $("voiceLabel").textContent = on ? "Voice replies: on" : "Voice replies: off";
+    if (!on) stopSpeaking();
+}
+
+/* ---------- build the cards ---------- */
+function buildCard(item, soon) {
+    const li = document.createElement("li");
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "card";
+
+    const tile = document.createElement("span");
+    tile.className = "tile";
+    tile.appendChild(icon(item.icon));
+
+    const name = document.createElement("span");
+    name.className = "name";
+    name.textContent = item.name;
+
+    const desc = document.createElement("span");
+    desc.className = "desc";
+    desc.textContent = item.desc;
+
+    btn.append(tile, name, desc);
+
+    if (soon) {
+        btn.disabled = true;
+        const tag = document.createElement("span");
+        tag.className = "soon";
+        tag.textContent = "Coming soon";
+        btn.appendChild(tag);
+    } else {
+        btn.dataset.question = item.question;
+        btn.addEventListener("click", function () { send(item.question); });
+    }
+
+    li.appendChild(btn);
+    return li;
+}
+
+TOPICS.forEach(function (t) { $("topicCards").appendChild(buildCard(t, false)); });
+SOON.forEach(function (t) { $("soonCards").appendChild(buildCard(t, true)); });
+
+/* ---------- wiring ---------- */
+$("composer").addEventListener("submit", function (event) {
+    event.preventDefault();
+    send(messageInput.value);
+});
+$("tabHome").addEventListener("click", function () { setView("home"); });
+$("tabChat").addEventListener("click", function () { setView("chat"); messageInput.focus(); });
+$("tabNew").addEventListener("click", newChat);
+
+/* Voice */
+if (SpeechRec) {
+    $("micBtn").hidden = false;
+    $("micBtn").addEventListener("click", function () {
+        if (listening) stopListening();
+        else startListening();
+    });
+}
+if (synth) {
+    $("voiceBtn").hidden = false;
+    let saved = false;
+    try { saved = localStorage.getItem(VOICE_KEY) === "on"; } catch (e) {}
+    setVoiceReplies(saved);
+    $("voiceBtn").addEventListener("click", function () {
+        setVoiceReplies(!voiceReplies);
+        try { localStorage.setItem(VOICE_KEY, voiceReplies ? "on" : "off"); } catch (e) {}
+    });
+}
+document.addEventListener("keydown", function (event) {
+    if (event.key === "Escape") { cancelListening(); stopSpeaking(); }
+});
+window.addEventListener("pagehide", stopSpeaking);
+
+/* Theme toggle */
+function applyThemeLabel() {
+    const dark = document.documentElement.getAttribute("data-theme") === "dark";
+    $("themeLabel").textContent = dark ? "Light theme" : "Dark theme";
+    $("themeBtn").setAttribute("aria-label", dark ? "Switch to light theme" : "Switch to dark theme");
+}
+$("themeBtn").addEventListener("click", function () {
+    const next = document.documentElement.getAttribute("data-theme") === "dark" ? "light" : "dark";
+    document.documentElement.setAttribute("data-theme", next);
+    try { localStorage.setItem(THEME_KEY, next); } catch (e) {}
+    applyThemeLabel();
+});
+applyThemeLabel();
+
+/* Remember the employee ID on this device */
+try { employeeInput.value = localStorage.getItem(ID_KEY) || ""; } catch (e) {}
+employeeInput.addEventListener("input", function () {
+    try { localStorage.setItem(ID_KEY, employeeInput.value.trim()); } catch (e) {}
+});
+
+addMessage(WELCOME, "bot", { plain: true });
+</script>
+
+</body>
+</html>
