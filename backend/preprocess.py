@@ -35,7 +35,7 @@ STOP_WORDS = {
 }
 
 MIN_LENGTH_TO_CORRECT = 4       # very short words are too ambiguous to auto-correct
-CORRECTION_CUTOFF = 0.85        # how similar a known word must be (0 to 1)
+CORRECTION_CUTOFF = 0.90        # how similar a known word must be (0 to 1); 'play' must NOT become 'pay'
 
 
 def tokenize(text):

@@ -7,9 +7,13 @@ from fastapi.responses import FileResponse
 from pydantic import BaseModel
 
 try:
-    from . import preprocess as nlp      # uvicorn backend.main:app (from the project root)
+    from . import preprocess as nlp                     # uvicorn backend.main:app (from the project root)
+    from .classifier import IntentClassifier
+    from .training_data import TRAINING_DATA
 except ImportError:
-    import preprocess as nlp             # uvicorn main:app (from inside backend/)
+    import preprocess as nlp                            # uvicorn main:app (from inside backend/)
+    from classifier import IntentClassifier
+    from training_data import TRAINING_DATA
 
 # Absolute path to the frontend folder, so the app starts correctly
 # no matter which directory you launch uvicorn from.
@@ -204,41 +208,67 @@ INTENTS = [
 
 
 # 🧠 SMART MATCHING
-# 🧠 NLP index, built once when the server starts:
-#   - VOCAB: every known word (used to fix typos)
-#   - PATTERN_TOKENS: each intent's patterns after the same preprocessing as user messages
-VOCAB = nlp.build_vocabulary(p for intent in INTENTS for p in intent["patterns"])
+# 🧠 NLP engine, built once when the server starts
+#   VOCAB            known words, used to fix typos ("probaton" -> "probation")
+#   CLASSIFIER       machine-learning intent model trained on training_data.py
+#   PATTERN_TOKENS   the original keyword patterns, kept as a safety net
+INTENT_BY_TAG = {intent["tag"]: intent for intent in INTENTS}
+
+VOCAB = nlp.build_vocabulary(
+    [p for intent in INTENTS for p in intent["patterns"]] +
+    [text for text, label in TRAINING_DATA if label != "out_of_scope"]
+)
+
 PATTERN_TOKENS = [
-    (intent, [t for t in (nlp.preprocess(p) for p in intent["patterns"]) if t])
+    (intent["tag"], [t for t in (nlp.preprocess(p) for p in intent["patterns"]) if t])
     for intent in INTENTS
 ]
 
-APPLY, LEAVE = nlp.stem("apply"), nlp.stem("leave")
+CLASSIFIER = IntentClassifier(lambda text: " ".join(nlp.preprocess(text, VOCAB))).fit(TRAINING_DATA)
+
+# The model must be at least this sure, otherwise the keyword matcher gets a chance first.
+CONFIDENCE_THRESHOLD = 0.35
+
+LEAVE = nlp.stem("leave")
+NOT_SURE = "I'm not sure 🤔. Try asking about leave, salary, benefits or company policies."
+
+
+def keyword_intent(tokens):
+    """Safety net: the intent whose keyword patterns match the most (whole words), or None."""
+    best_tag, best_score = None, 0
+    for tag, patterns in PATTERN_TOKENS:
+        score = sum(1 for pattern in patterns if nlp.contains_phrase(tokens, pattern))
+        if score > best_score:
+            best_tag, best_score = tag, score
+    return best_tag
+
+
+def predict_intent(message):
+    """Return (intent, confidence, method). method is "model", "keywords" or "none"."""
+    tokens = nlp.preprocess(message, VOCAB)
+    if not tokens:
+        return None, 0.0, "none"
+
+    tag, confidence = CLASSIFIER.predict(message)
+    if tag and confidence >= CONFIDENCE_THRESHOLD:
+        return tag, confidence, "model"
+
+    tag = keyword_intent(tokens)
+    if tag:
+        return tag, confidence, "keywords"
+    return None, confidence, "none"
 
 
 def get_response(user_message):
-    # Input processing: normalise -> tokenise -> remove stop words -> fix typos -> stem
+    tag, confidence, method = predict_intent(user_message)
+
+    if tag == "out_of_scope":
+        return NOT_SURE
+    if tag:
+        return random.choice(INTENT_BY_TAG[tag]["responses"])
+
+    # SMART FALLBACK: nothing matched, but a single key word may still help
     tokens = nlp.preprocess(user_message, VOCAB)
-
-    # SPECIAL CONDITION (highest priority): "apply" + "leave" anywhere in the message
-    if APPLY in tokens and LEAVE in tokens:
-        return "To apply for leave:\n1. Login to HR portal\n2. Go to Leave section\n3. Submit request for approval."
-
-    # Intent matching: score = number of an intent's patterns found as whole words
-    best_match = None
-    max_score = 0
-
-    for intent, patterns in PATTERN_TOKENS:
-        score = sum(1 for pattern in patterns if nlp.contains_phrase(tokens, pattern))
-
-        if score > max_score:
-            max_score = score
-            best_match = intent
-
-    if best_match:
-        return random.choice(best_match["responses"])
-
-    # SMART FALLBACK (also on whole words, so "this" no longer counts as "hi")
     if LEAVE in tokens:
         return "You can ask about leave policy or how to apply leave."
     elif nlp.stem("salary") in tokens:
@@ -248,7 +278,7 @@ def get_response(user_message):
     elif "help" in tokens:
         return "I can help with leave, salary, HR contact, benefits etc."
 
-    return "I'm not sure 🤔. Try asking about leave, salary, benefits or company policies."
+    return NOT_SURE
 
 
 # API
