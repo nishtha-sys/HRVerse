@@ -15,15 +15,21 @@ from sklearn.metrics import classification_report
 from sklearn.model_selection import StratifiedKFold, cross_val_predict, cross_val_score
 
 from . import main as bot
-from .classifier import build_model
 from .test_data import TEST_DATA
+
+# The earlier versions only knew these topics. The newer skills (about the bot, what it can do,
+# acting on someone's behalf, private information) did not exist yet, so they count as misses.
+ORIGINAL_TAGS = {"greeting", "thanks", "apply_leave", "leave_policy", "salary", "wfh", "working_hours",
+                 "probation", "contact_hr", "benefits", "ethics", "legal", "bad_language"}
 
 
 def substring_intent(message):
-    """The ORIGINAL first version: raw substring matching, no preprocessing."""
+    """Version 1: raw substring matching, no preprocessing."""
     text = message.lower()
     best_tag, best_score = None, 0
     for intent in bot.INTENTS:
+        if intent["tag"] not in ORIGINAL_TAGS:
+            continue
         score = sum(1 for pattern in intent["patterns"] if pattern in text)
         if score > best_score:
             best_tag, best_score = intent["tag"], score
@@ -32,11 +38,21 @@ def substring_intent(message):
 
 def keyword_only(message):
     """Version 2: preprocessing (tokens, stop words, typo fix, stemming) + keyword patterns."""
-    return bot.keyword_intent(bot.nlp.preprocess(message, bot.VOCAB))
+    tokens = bot.nlp.preprocess(message, bot.VOCAB)
+    best_tag, best_score = None, 0
+    for tag, patterns in bot.PATTERN_TOKENS:
+        if tag not in ORIGINAL_TAGS:
+            continue
+        score = sum(1 for pattern in patterns if bot.nlp.contains_phrase(tokens, pattern))
+        if score > best_score:
+            best_tag, best_score = tag, score
+    return best_tag
 
 
 def full_system(message):
-    """Version 3 (current): ML classifier first, keyword patterns as safety net."""
+    """Version 3 (current): ML classifier first, keyword patterns and the privacy rule as safety nets."""
+    if bot.asks_about_others_privately(bot.nlp.normalize(message)):
+        return "personal_info"
     return bot.predict_intent(message)[0]
 
 
@@ -60,27 +76,25 @@ def main():
     print(f"  test questions     : {len(TEST_DATA)}  (never used for training)")
     print(f"  test questions also in training data: {len(overlap)}")
 
-    # Two different labels for questions that look identical after preprocessing confuse the model.
+    # The same wording with two different labels confuses the model.
     seen = {}
     for text, label in bot.TRAINING_DATA:
-        seen.setdefault(bot.CLASSIFIER.prepare(text), set()).add(label)
+        seen.setdefault(" ".join(bot.nlp.normalize(text, bot.VOCAB)), set()).add(label)
     conflicts = {k: v for k, v in seen.items() if len(v) > 1}
     print(f"  conflicting training examples: {len(conflicts)}")
-    for prepared_text, group in conflicts.items():
-        print(f"    '{prepared_text}' is labelled {sorted(group)}")
+    for wording, group in conflicts.items():
+        print(f"    '{wording}' is labelled {sorted(group)}")
 
     print("\n" + "=" * 64)
     print("1. CROSS-VALIDATION on training data (5 folds, model only)")
-    prepared = [bot.CLASSIFIER.prepare(t) for t in texts]
-    scores = cross_val_score(build_model(), prepared, labels,
-                             cv=StratifiedKFold(5, shuffle=True, random_state=42))
+    folds = StratifiedKFold(5, shuffle=True, random_state=42)
+    scores = cross_val_score(bot.CLASSIFIER.new_model(), texts, labels, cv=folds)
     print(f"  accuracy per fold : {[round(float(s), 3) for s in scores]}")
     print(f"  mean accuracy     : {scores.mean():.1%}")
 
     # Choose the confidence threshold fairly: from cross-validation on the TRAINING data only.
-    folds = StratifiedKFold(5, shuffle=True, random_state=42)
-    probabilities = cross_val_predict(build_model(), prepared, labels, cv=folds, method="predict_proba")
-    classes = build_model().fit(prepared, labels).classes_
+    probabilities = cross_val_predict(bot.CLASSIFIER.new_model(), texts, labels, cv=folds, method="predict_proba")
+    classes = bot.CLASSIFIER.new_model().fit(texts, labels).classes_
     print("  threshold vs cross-validated accuracy (model answers only if it is at least this sure):")
     for threshold in (0.2, 0.3, 0.4, 0.5, 0.6):
         hits = 0
@@ -114,12 +128,12 @@ def main():
         print("  none")
 
     print("\n" + "=" * 64)
-    print("4. CONFIDENCE THRESHOLD (how sure the model must be before it answers)")
+    print("4. CONFIDENCE THRESHOLD on the test set")
     original = bot.CONFIDENCE_THRESHOLD
-    for threshold in (0.2, 0.3, 0.4, 0.5, 0.6, 0.7):
+    for threshold in (0.2, 0.3, 0.35, 0.4, 0.5, 0.6):
         bot.CONFIDENCE_THRESHOLD = threshold
         marker = "  <- current" if threshold == original else ""
-        print(f"  threshold {threshold:.1f}: accuracy {accuracy(full_system, TEST_DATA):6.1%}{marker}")
+        print(f"  threshold {threshold:.2f}: accuracy {accuracy(full_system, TEST_DATA):6.1%}{marker}")
     bot.CONFIDENCE_THRESHOLD = original
 
     print("\n" + "=" * 64)

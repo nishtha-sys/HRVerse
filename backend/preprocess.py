@@ -38,10 +38,21 @@ MIN_LENGTH_TO_CORRECT = 4       # very short words are too ambiguous to auto-cor
 CORRECTION_CUTOFF = 0.90        # how similar a known word must be (0 to 1); 'play' must NOT become 'pay'
 
 
+# Everyday chat shorthand, expanded before anything else ("what can u do" -> "what can you do")
+CHAT_WORDS = {
+    "u": ["you"], "ur": ["your"], "r": ["are"],
+    "pls": ["please"], "plz": ["please"],
+    "wanna": ["want", "to"],
+}
+
+
 def tokenize(text):
     """Normalise and split into lowercase word tokens (no stop-word removal yet)."""
     text = text.lower().replace("\u2019", "'").replace("\u2018", "'")
-    return _tokenizer.tokenize(text)
+    tokens = []
+    for token in _tokenizer.tokenize(text):
+        tokens.extend(CHAT_WORDS.get(token, [token]))
+    return tokens
 
 
 def stem(word):
@@ -72,6 +83,15 @@ def preprocess(text, vocab=None):
     if vocab:
         tokens = [correct(t, vocab) for t in tokens]
     return [stem(t) for t in tokens]
+
+
+def normalize(text, vocab=None):
+    """Like preprocess(), but keeps stop words and does not stem.
+    Used for phrase features such as "what can you do", which mean nothing without their small words."""
+    tokens = tokenize(text)
+    if vocab:
+        tokens = [t if t in STOP_WORDS else correct(t, vocab) for t in tokens]
+    return tokens
 
 
 def contains_phrase(tokens, phrase_tokens):

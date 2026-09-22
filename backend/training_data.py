@@ -31,8 +31,9 @@ namaste
 yo
 anyone there
 hello hr
-hi can you help me
-hey i need some help
+hola
+hola hr
+hola amigo
 howdy
 greetings
 hello good morning
@@ -374,6 +375,140 @@ legal and compliance rules
 what are the legal policies
 """,
 
+"about_bot": """
+who are you
+introduce yourself
+tell me about yourself
+what is your name
+what are you
+are you a bot
+are you a robot
+are you human
+who made you
+who created you
+who built this bot
+what is hrverse
+tell me about hrverse
+what should i call you
+please introduce yourself
+can you introduce yourself
+what is this bot
+are you an ai
+are you real
+what kind of assistant are you
+who developed you
+about you
+your name
+who is this
+""",
+
+"capabilities": """
+what can you do
+what can u do
+what can you do for me
+how can you help me
+what do you know
+what can i ask you
+what can i ask
+help
+help me
+i need help
+hi can you help me
+what are your features
+what are your capabilities
+what topics do you cover
+what all can you do
+what services do you provide
+how can you help
+show me what you can do
+what questions can you answer
+what do you help with
+can you help me
+how does this work
+how to use this bot
+guide me
+what are you capable of
+menu
+""",
+
+"do_for_me": """
+can you apply leave for me
+apply it for me
+please submit my leave request
+can you do that
+can u do that
+do it for me
+can you book leave for me
+raise a request on my behalf
+can you approve my leave
+cancel my leave
+submit it for me
+can you do that for me
+apply leave on my behalf
+can you submit my leave
+please apply for me
+do this for me
+can you take a leave for me
+can you apply it now
+can you send this request to my manager
+submit the request for me
+book my leave
+mark me on leave
+can you cancel my leave request
+approve my request
+""",
+
+"personal_info": """
+give me hr personal phone number
+what is my managers salary
+tell me another employees salary
+share hr home address
+what is the ceo phone number
+give me employee personal details
+whatsapp number of hr
+personal mobile number of hr manager
+how much does my colleague earn
+tell me my friends leave balance
+show me the employee database
+someone elses salary
+hr personal email
+what is the personal number of my manager
+home address of my team lead
+private details of employees
+salary of other employees
+personal contact of hr executive
+who earns the most in the company
+give me my colleagues phone number
+""",
+
+"grievance": """
+how to file a complaint against a colleague
+i want to raise a grievance
+how do i report harassment
+someone is harassing me at work
+i am facing bullying at work
+report a workplace issue
+i want to complain about my manager
+how to raise a concern with hr
+workplace discrimination complaint
+grievance redressal process
+i faced misconduct at work
+how do i report misconduct
+unfair treatment at work
+i want to report an incident
+harassment complaint procedure
+how to escalate an issue with my manager
+my colleague is bullying me
+raise a complaint
+lodge a complaint
+toxic behaviour at work
+who do i tell about harassment
+file a grievance
+reporting sexual harassment
+issue with my team lead
+i feel unsafe at work
+""",
+
 "bad_language": """
 you are stupid
 you are useless
@@ -420,7 +555,6 @@ translate this to hindi
 book a flight to delhi
 what is the price of gold
 tell me a story
-what is your name
 how old are you
 what is 25 times 4
 write a poem
@@ -433,9 +567,30 @@ what is the wifi password
 where is the cafeteria
 what is the meaning of life
 how to lose weight
-tell me about yourself
 what is this
 who made the taj mahal
+i want to order pizza
+i want to buy a new phone
+i want to watch a movie
+i want to learn guitar
+tell me a fun fact
+tell me a fun fact about animals
+tell me something interesting
+when is the movie release
+when is the next cricket match
+when is diwali
+when is christmas
+when does the train leave
+how is the weather in delhi
+what is the date today
+explain quantum physics
+what is the capital of india
+recommend a good restaurant
+how do i make tea
+what is bitcoin
+can you order food for me
+can you book a movie ticket for me
+can you play music
 """,
 }
 

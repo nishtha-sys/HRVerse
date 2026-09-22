@@ -15,7 +15,10 @@ Minor project, B.Tech Computer Science & Engineering (AI), Babu Banarasi Das Uni
 - Chat interface with a home screen of topic cards, light and dark theme, works on phone and laptop
 - Voice input (microphone) and read-aloud answers, in Chrome and Edge
 - Understands typos and different wordings: "probaton period", "wanna take a day off"
-- Says "I'm not sure" for off-topic questions instead of guessing
+- Introduces itself and explains what it can do ("who are you", "what can you do")
+- Handles off-topic questions politely and suggests the closest topic when it is unsure ("Did you mean ...?")
+- Never shares private details of employees or HR staff, and points complaints and harassment reports to HR
+- Says honestly what it cannot do yet, such as applying for leave on your behalf
 - One deployment serves both the web page and the API
 
 ## How it works
@@ -25,21 +28,33 @@ Every message goes through this pipeline:
 1. **Text preprocessing (NLTK):** lowercase, tokenize, remove stop words, fix typos, stem
 2. **Intent classification:** TF-IDF features + Logistic Regression (scikit-learn), trained on
    labelled example questions in `backend/training_data.py`
-3. **Keyword matching:** the earlier rule-based matcher, kept as a safety net when the model is unsure
-4. **Response:** a reply for the detected intent is sent back to the chat page
+3. **Safety nets:** a keyword matcher for when the model is unsure, and a rule that blocks requests
+   for other people's private details
+4. **Response:** a reply for the detected intent, or the closest topics if the bot is unsure
 
 ## Results
 
-Measured with `python -m backend.evaluate` on 114 questions that were **not** used for training:
+Measured with `python -m backend.evaluate` on 156 questions (19 intents) that were **not** used for training:
 
 | Version | Accuracy |
 |---|---|
-| v1 raw substring matching (original) | 51.8% |
-| v2 + NLP preprocessing, keyword patterns | 58.8% |
-| v3 + ML classifier (current) | 96.5% |
+| v1 raw substring matching (original) | 39.1% |
+| v2 + NLP preprocessing, keyword patterns | 44.2% |
+| v3 + ML classifier (current) | 93.6% |
 
-Average time per reply: under 1 ms. The training and test questions were written by the project
-team, so the score is optimistic. Testing with questions from real users is planned.
+The earlier versions did not know the newer skills (introductions, capabilities, privacy, complaints),
+so those count as misses for them. Average time per reply: about 2 ms.
+
+The training and test questions were written by the project team, so the score is optimistic.
+Cross-validation on the training data gives 82.7%, which is a more cautious estimate. Testing with
+questions from real users is planned.
+
+## Known limitations
+
+- The bot only covers the topics listed in `training_data.py`. Questions about other HR topics
+  (for example holidays or resignation) get a polite "not sure" reply until they are added.
+- Answers are ready-made policy text chosen by the model. It is not a generative AI.
+- It does not yet remember earlier messages, and there is no login or chat history.
 
 ## Run it on your computer
 
@@ -80,7 +95,10 @@ requirements.txt     Python packages
 - [x] Trained intent classifier with evaluation
 - [x] Voice input and spoken answers
 - [x] Deployed online
+- [ ] Conversation memory (follow-up questions)
+- [ ] Login and saved chat history
+- [ ] Better voices through a text-to-speech service
 - [ ] Entity recognition (leave type, and similar details)
 - [ ] Employee data lookup, for example remaining leave balance
-- [ ] Login and admin dashboard
+- [ ] Admin dashboard
 - [ ] Answers from uploaded policy documents

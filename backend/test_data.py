@@ -142,6 +142,61 @@ statutory requirements
 compliance guidelines
 """,
 
+"about_bot": """
+who are you exactly
+could you introduce yourself to me
+what is your name bot
+are you a human or a bot
+who built you
+tell me something about yourself
+what is hrverse all about
+introduce yourself hola
+""",
+
+"capabilities": """
+what all can you help me with
+what can u do for me
+how can you assist me
+what are you able to do
+which topics can i ask about
+what do you cover
+show me your features
+i need some help
+""",
+
+"do_for_me": """
+can you apply for leave on my behalf
+please do it for me
+submit my request for me please
+could you do that for me
+will you apply my leave
+cancel my leave for me
+put in my leave request
+i wanna apply for leave i have fever can u do that
+""",
+
+"personal_info": """
+how to get hrs personal number
+share the personal phone number of my manager
+what is my colleagues salary
+give me hr managers home address
+personal whatsapp number of hr
+tell me how much my team lead earns
+can i get another employees details
+ceo mobile number
+""",
+
+"grievance": """
+i want to file a complaint
+my manager is harassing me
+how can i report bullying
+where do i raise a grievance
+i want to complain about a colleague
+report an incident at work
+discrimination at workplace what should i do
+who handles harassment complaints
+""",
+
 "bad_language": """
 you are completely useless
 what a dumb bot
@@ -155,6 +210,8 @@ i really hate this bot
 
 "out_of_scope": """
 what is the weather like tomorrow
+i want to book a table for dinner
+when is the next holiday season sale
 can you tell me a joke
 who is the president of the usa
 how do i bake a cake
