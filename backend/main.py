@@ -8,10 +8,12 @@ from pydantic import BaseModel
 
 try:
     from . import preprocess as nlp                     # uvicorn backend.main:app (from the project root)
+    from . import entities
     from .classifier import IntentClassifier
     from .training_data import TRAINING_DATA
 except ImportError:
     import preprocess as nlp                            # uvicorn main:app (from inside backend/)
+    import entities
     from classifier import IntentClassifier
     from training_data import TRAINING_DATA
 
@@ -51,6 +53,7 @@ MAX_MESSAGE_LENGTH = 500
 # Request model
 class ChatRequest(BaseModel):
     message: str
+    employee_id: str | None = None
 
 
 # 🧠 INTENTS
@@ -117,7 +120,7 @@ INTENTS = [
     # SALARY
     {
         "tag": "salary",
-        "patterns": ["salary", "pay", "payroll", "salary date"],
+        "patterns": ["salary", "pay", "payroll", "salary date", "ctc"],
         "responses": [
             "Salary is credited on the last working day of every month.",
             "You can check salary slips in HR portal."
@@ -245,6 +248,26 @@ INTENTS = [
         ]
     },
 
+    # WHERE TO FIND YOUR EMPLOYEE ID (not the same as sharing PRIVATE info)
+    {
+        "tag": "employee_id_help",
+        "patterns": ["my employee id", "find my employee id", "what is my id"],
+        "responses": [
+            "I don't have your Employee ID saved. You'll find it on your ID card, payslip, or the HR portal. Once you have it, enter it in the sidebar so I can look up your leave balance.",
+            "Your Employee ID is usually printed on your ID card or payslip, or you can check the HR portal. Enter it in the sidebar field and I can use it to check your leave balance."
+        ]
+    },
+
+    # WHETHER THE BOT REMEMBERS PAST CHATS
+    {
+        "tag": "no_memory",
+        "patterns": ["chat history", "remember our", "remember what i", "remember me", "previous conversation"],
+        "responses": [
+            "No, I don't keep chat history yet, each conversation starts fresh. That's on the roadmap for a later version.",
+            "Not yet, I can't recall earlier conversations. I only use what you've typed in this chat."
+        ]
+    },
+
     # BAD LANGUAGE
     {
         "tag": "bad_language",
@@ -367,7 +390,7 @@ def not_sure_reply(message):
     return random.choice(OUT_OF_SCOPE_REPLIES)
 
 
-def get_response(user_message):
+def get_response(user_message, employee_id=None):
     if asks_about_others_privately(nlp.normalize(user_message)):
         return random.choice(INTENT_BY_TAG["personal_info"]["responses"])
 
@@ -377,6 +400,15 @@ def get_response(user_message):
         return random.choice(OUT_OF_SCOPE_REPLIES)
     if tag is None:
         return not_sure_reply(user_message)
+
+    # ENTITY RECOGNITION: "how many sick leaves do I have left?" -> intent=leave_policy, entity=sick leave
+    if tag == "leave_policy":
+        words = set(nlp.normalize(user_message))
+        if entities.is_personal_leave_query(words):
+            reply = entities.leave_balance_reply(employee_id, entities.extract_leave_type(words))
+            if feels_unwell(nlp.normalize(user_message)):
+                reply = random.choice(CARING_LINES) + "\n" + reply
+            return reply
 
     reply = random.choice(INTENT_BY_TAG[tag]["responses"])
     if tag in CARING_INTENTS and feels_unwell(nlp.normalize(user_message)):
@@ -390,5 +422,6 @@ def get_response(user_message):
 @app.post("/chat")
 def chat(request: ChatRequest):
     user_message = request.message[:MAX_MESSAGE_LENGTH]      # ignore anything beyond a normal question
-    response = get_response(user_message)
+    employee_id = request.employee_id[:20] if request.employee_id else None
+    response = get_response(user_message, employee_id)
     return {"response": response}

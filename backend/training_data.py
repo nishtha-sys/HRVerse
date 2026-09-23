@@ -165,6 +165,15 @@ when is pay credited to bank
 salary disbursement
 what is the payroll schedule
 do i get salary on the last day of the month
+can we discuss ctc
+lets talk about ctc
+what is my ctc
+ctc breakdown
+ctc details
+what does ctc include
+hi lets discuss something related to ctc
+i wanted to talk about my ctc
+what is the difference between ctc and in hand salary
 """,
 
 "wfh": """
@@ -507,6 +516,31 @@ file a grievance
 reporting sexual harassment
 issue with my team lead
 i feel unsafe at work
+""",
+
+"employee_id_help": """
+what is my employee id
+where can i find my employee id
+how do i find my employee id
+what is my id
+where is my employee number
+i dont know my employee id
+what is my staff id
+how to find my id number
+tell me my employee id
+where do i see my employee id
+""",
+
+"no_memory": """
+do you have chat history
+do you remember our conversation
+do you remember what i said earlier
+can you save our chat
+will you remember me next time
+do you keep chat history
+can you remember previous conversations
+do you store my messages
+is there a chat history feature
 """,
 
 "bad_language": """

@@ -197,6 +197,20 @@ discrimination at workplace what should i do
 who handles harassment complaints
 """,
 
+"employee_id_help": """
+where do i find my employee id
+what is my employee number
+i forgot my employee id
+how can i check my staff id
+""",
+
+"no_memory": """
+do you remember what we talked about before
+does this bot save chat history
+will you know me if i come back later
+can you recall our previous chat
+""",
+
 "bad_language": """
 you are completely useless
 what a dumb bot
