@@ -314,6 +314,133 @@ button { cursor: pointer; }
     font-size: 12px;
 }
 
+/* ---------- History and Policy Documents panels ---------- */
+#historyView, #policyView { padding: 30px max(20px, calc((100% - var(--wide)) / 2)) 28px; }
+
+.panel-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+.panel-head h2 { margin: 0; font-family: var(--serif); font-weight: 600; font-size: 28px; }
+
+.lead.small { margin: 8px 0 24px; max-width: 60ch; color: var(--muted); font-size: 14.5px; line-height: 1.5; }
+
+.text-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: transparent;
+    border: 0;
+    padding: 6px 4px;
+    color: var(--icon);
+    font-size: 14px;
+    font-weight: 600;
+}
+.text-btn:hover { text-decoration: underline; }
+.text-btn .icon { width: 17px; height: 17px; }
+
+.history-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 2px; }
+.history-item {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 3px;
+    width: 100%;
+    text-align: left;
+    background: transparent;
+    border: 0;
+    border-bottom: 1px solid var(--line);
+    padding: 14px 4px;
+}
+.history-item:hover { background: var(--tint); }
+.history-item .title { font-weight: 600; font-size: 15.5px; }
+.history-item .meta { color: var(--muted); font-size: 13px; }
+.empty-note { color: var(--muted); font-size: 15px; padding: 8px 4px; }
+
+.upload-row { display: flex; align-items: center; gap: 12px; margin-bottom: 6px; flex-wrap: wrap; }
+.upload-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 18px;
+    background: var(--surface);
+    border: 1.5px solid var(--line);
+    border-radius: 10px;
+    color: var(--text);
+    font-weight: 600;
+    font-size: 14.5px;
+}
+.upload-btn:hover:not(:disabled) { border-color: var(--icon); }
+.upload-btn:disabled { opacity: 0.6; cursor: default; }
+.upload-status { font-size: 13.5px; color: var(--muted); }
+.upload-status.error { color: var(--orange-dark); }
+
+.doc-list { list-style: none; margin: 4px 0 22px; padding: 0; display: flex; flex-direction: column; gap: 4px; }
+.doc-list li {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 14px; color: var(--muted);
+    padding: 6px 2px; border-bottom: 1px dashed var(--line);
+}
+.doc-list .icon { width: 16px; height: 16px; flex: none; }
+.doc-list strong { color: var(--text); font-weight: 600; }
+
+#policyLog { display: flex; flex-direction: column; gap: 20px; padding: 4px 0 20px; }
+.composer.inline {
+    position: static;
+    padding: 0;
+    border-top: 0;
+    background: transparent;
+}
+
+/* ---------- Raise an HR case: inline form in the chat log ---------- */
+.case-form {
+    align-self: flex-start;
+    max-width: min(64ch, 100%);
+    border: 1.5px solid var(--line);
+    border-radius: 14px;
+    padding: 18px;
+    background: var(--surface);
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+.case-form label { font-size: 13.5px; font-weight: 600; color: var(--muted); }
+.case-form select, .case-form textarea {
+    width: 100%;
+    margin-top: 4px;
+    padding: 10px 12px;
+    font-size: 15px;
+    font-family: inherit;
+    background: var(--bg);
+    border: 1.5px solid var(--line);
+    border-radius: 10px;
+    color: var(--text);
+}
+.case-form textarea { min-height: 90px; resize: vertical; }
+.case-form select:focus, .case-form textarea:focus { outline: none; border-color: var(--icon); }
+.case-form .row-actions { display: flex; justify-content: flex-end; gap: 10px; }
+.case-form .cancel-btn {
+    padding: 9px 16px; background: transparent; border: 1.5px solid var(--line); border-radius: 10px;
+    color: var(--muted); font-weight: 600; font-size: 14px;
+}
+.case-form .submit-btn {
+    padding: 9px 18px; background: var(--orange); border: 0; border-radius: 10px;
+    color: #182c52; font-weight: 700; font-size: 14px;
+}
+.case-form .submit-btn:hover { background: var(--orange-dark); }
+.case-form .form-error { color: var(--orange-dark); font-size: 13px; }
+.email-hr-btn {
+    align-self: flex-start;
+    display: inline-flex; align-items: center; gap: 7px;
+    margin-top: 8px; margin-left: 16px;
+    padding: 8px 14px;
+    background: transparent; border: 1.5px solid var(--line); border-radius: 999px;
+    color: var(--icon); font-size: 13.5px; font-weight: 600;
+}
+.email-hr-btn:hover { background: var(--tint); }
+
 /* ---------- Conversation ---------- */
 .log {
     display: flex;
@@ -569,6 +696,10 @@ button { cursor: pointer; }
         <symbol id="i-pie" viewBox="0 0 24 24"><path d="M21 12A9 9 0 1 1 12 3"/><path d="M21 12h-9V3a9 9 0 0 1 9 9Z"/></symbol>
         <symbol id="i-buoy" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="4"/><path d="M4.9 4.9l4.3 4.3M14.8 14.8l4.3 4.3M14.8 9.2l4.3-4.3M4.9 19.1l4.3-4.3"/></symbol>
         <symbol id="i-file" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6M8 13h8M8 17h8"/></symbol>
+        <symbol id="i-back" viewBox="0 0 24 24"><path d="M19 12H5M11 18l-6-6 6-6"/></symbol>
+        <symbol id="i-upload" viewBox="0 0 24 24"><path d="M12 16V4M7 9l5-5 5 5"/><path d="M4 16v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3"/></symbol>
+        <symbol id="i-mail" viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m2 6 10 7 10-7"/></symbol>
+        <symbol id="i-trash" viewBox="0 0 24 24"><path d="M4 7h16M9 7V4h6v3M6 7l1 13a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-13"/></symbol>
     </defs>
 </svg>
 
@@ -588,6 +719,9 @@ button { cursor: pointer; }
             </button>
             <button type="button" class="tab" id="tabChat">
                 <svg class="icon" aria-hidden="true"><use href="#i-chat"/></svg>Chat
+            </button>
+            <button type="button" class="tab" id="tabHistory">
+                <svg class="icon" aria-hidden="true"><use href="#i-clock"/></svg>History
             </button>
             <button type="button" class="tab new" id="tabNew">
                 <svg class="icon" aria-hidden="true"><use href="#i-plus"/></svg>New chat
@@ -623,13 +757,51 @@ button { cursor: pointer; }
 
             <h3 class="group-title">Common questions</h3>
             <ul class="cards" id="topicCards"></ul>
-
-            <h3 class="group-title">Coming soon</h3>
-            <ul class="cards" id="soonCards"></ul>
         </section>
 
         <section class="view" id="chatView" aria-label="Chat" hidden>
             <div class="log" id="log" role="log" aria-live="polite" aria-label="Conversation"></div>
+        </section>
+
+        <section class="view" id="historyView" aria-label="History" hidden>
+            <div class="panel-head">
+                <h2>Past conversations</h2>
+                <button type="button" class="text-btn" id="clearHistoryBtn">
+                    <svg class="icon" aria-hidden="true"><use href="#i-trash"/></svg>Clear history
+                </button>
+            </div>
+            <p class="lead small">Saved on this device only. There's no login yet, so this list is not shared across devices.</p>
+            <ul class="history-list" id="historyList"></ul>
+        </section>
+
+        <section class="view" id="policyView" aria-label="Policy documents" hidden>
+            <div class="panel-head">
+                <button type="button" class="text-btn" id="policyBackBtn">
+                    <svg class="icon" aria-hidden="true"><use href="#i-back"/></svg>Home
+                </button>
+            </div>
+            <h2>Policy documents</h2>
+            <p class="lead small">Upload an HR policy PDF and ask questions about it. Answers are the matching passage from your document, not a generated summary. Uploaded files are kept only until the server restarts.</p>
+
+            <div class="upload-row">
+                <input type="file" id="policyFileInput" accept="application/pdf" hidden>
+                <button type="button" class="upload-btn" id="policyUploadBtn">
+                    <svg class="icon" aria-hidden="true"><use href="#i-upload"/></svg>Upload PDF
+                </button>
+                <span id="policyUploadStatus" class="upload-status"></span>
+            </div>
+            <ul class="doc-list" id="policyDocList"></ul>
+
+            <div class="log" id="policyLog"></div>
+
+            <form class="composer inline" id="policyComposer" autocomplete="off">
+                <label for="policyInput" class="sr-only">Ask about the uploaded documents</label>
+                <input type="text" id="policyInput" placeholder="Ask about the uploaded document">
+                <button type="submit" class="send" id="policySendBtn" aria-label="Send">
+                    <span class="label">Send</span>
+                    <svg class="icon" aria-hidden="true"><use href="#i-send"/></svg>
+                </button>
+            </form>
         </section>
 
         <div class="voice-status" id="voiceStatus" role="status" aria-live="polite" hidden></div>
@@ -663,13 +835,9 @@ const TOPICS = [
     { icon: "clock",     name: "Working hours",    desc: "Standard office timings",           question: "What are the working hours?" },
     { icon: "phone",     name: "Contact HR",       desc: "Email, phone and office",           question: "How do I contact HR?" },
     { icon: "shield",    name: "Code of conduct",  desc: "Professional behaviour and ethics", question: "What is the code of conduct?" },
-    { icon: "scale",     name: "Legal compliance", desc: "Regulations the company follows",   question: "What are the legal regulations?" }
-];
-
-// Features planned for later steps. Shown so people know what is coming, but not clickable.
-const SOON = [
-    { icon: "buoy",  name: "Raise an HR case", desc: "Report an issue to the HR team" },
-    { icon: "file",  name: "Policy documents", desc: "Ask questions from uploaded PDFs" }
+    { icon: "scale",     name: "Legal compliance", desc: "Regulations the company follows",   question: "What are the legal regulations?" },
+    { icon: "buoy",      name: "Raise an HR case", desc: "Report an issue to the HR team",    action: "case" },
+    { icon: "file",      name: "Policy documents", desc: "Ask questions from uploaded PDFs",  action: "policy" }
 ];
 
 const WELCOME = "Hello! I'm the HRVerse assistant. Ask me about leave, work from home, probation, benefits, or how to reach HR.";
@@ -679,6 +847,10 @@ const API_URL = window.location.protocol === "file:" ? "http://127.0.0.1:8000/ch
 const ID_KEY = "hrverse.employeeId";
 const THEME_KEY = "hrverse.theme";
 const FEEDBACK_KEY = "hrverse.feedback";
+const HISTORY_KEY = "hrverse.history";
+const CASES_KEY = "hrverse.cases";
+const HR_EMAIL = "hr@company.com";
+const MAX_HISTORY_ITEMS = 50;
 
 const $ = function (id) { return document.getElementById(id); };
 const log = $("log");
@@ -688,8 +860,15 @@ const employeeInput = $("employeeId");
 
 let busy = false;
 let view = "home";
+let currentChatId = generateId();
+let currentMessages = [];   // {sender, text, plain, error, question} - mirrors what is shown in #log
+let hasUserMessage = false; // a chat is only saved to History once the person has actually asked something
 
 /* ---------- helpers ---------- */
+function generateId() {
+    return "c" + Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+}
+
 function icon(name) {
     const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
     svg.setAttribute("class", "icon");
@@ -713,9 +892,14 @@ function setView(name) {
     view = name;
     $("homeView").hidden = name !== "home";
     $("chatView").hidden = name !== "chat";
+    $("historyView").hidden = name !== "history";
+    $("policyView").hidden = name !== "policy";
+    $("composer").hidden = name === "history" || name === "policy";
     setCurrent($("tabHome"), name === "home");
     setCurrent($("tabChat"), name === "chat");
+    setCurrent($("tabHistory"), name === "history");
     if (name === "chat") scrollToEnd();
+    if (name === "history") renderHistory();
 }
 
 function setCurrent(btn, on) {
@@ -852,6 +1036,7 @@ async function send(text, opts) {
     setBusy(true);
     setView("chat");
     addMessage(text, "user");
+    recordMessage("user", text);
     messageInput.value = "";
     showTyping();
 
@@ -867,6 +1052,7 @@ async function send(text, opts) {
         removeTyping();
         if (data.response) {
             const wrap = addMessage(data.response, "bot", { question: text });
+            recordMessage("bot", data.response, { question: text });
             // Spoken question -> spoken answer. Typed questions are read aloud only if "Voice replies" is on.
             if (opts.voice || voiceReplies) speak(data.response, wrap.querySelector(".act.listen"));
         } else {
@@ -885,6 +1071,9 @@ async function send(text, opts) {
 function newChat() {
     cancelListening();
     stopSpeaking();
+    currentChatId = generateId();
+    currentMessages = [];
+    hasUserMessage = false;
     log.textContent = "";
     addMessage(WELCOME, "bot", { plain: true });
     setView("home");
@@ -1052,8 +1241,302 @@ function setVoiceReplies(on) {
     if (!on) stopSpeaking();
 }
 
+/* ---------- chat history (saved in this browser only - there is no login/database yet) ---------- */
+function recordMessage(sender, text, opts) {
+    opts = opts || {};
+    currentMessages.push({ sender: sender, text: text, plain: !!opts.plain, error: !!opts.error, question: opts.question || "" });
+    if (sender === "user") hasUserMessage = true;
+    if (!opts.error) persistCurrentChat();
+}
+
+function persistCurrentChat() {
+    if (!hasUserMessage) return;   // don't save a chat that never got a real question
+    try {
+        const all = JSON.parse(localStorage.getItem(HISTORY_KEY) || "[]");
+        const firstUser = currentMessages.find(function (m) { return m.sender === "user"; });
+        const entry = {
+            id: currentChatId,
+            title: firstUser ? firstUser.text.slice(0, 60) : "Conversation",
+            updatedAt: new Date().toISOString(),
+            messages: currentMessages
+        };
+        const idx = all.findIndex(function (c) { return c.id === currentChatId; });
+        if (idx >= 0) all[idx] = entry; else all.unshift(entry);
+        localStorage.setItem(HISTORY_KEY, JSON.stringify(all.slice(0, MAX_HISTORY_ITEMS)));
+    } catch (e) { /* storage unavailable: ignore */ }
+}
+
+function loadHistory() {
+    try { return JSON.parse(localStorage.getItem(HISTORY_KEY) || "[]"); } catch (e) { return []; }
+}
+
+function formatWhen(iso) {
+    const d = new Date(iso);
+    const sameDay = d.toDateString() === new Date().toDateString();
+    return sameDay ? d.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })
+                   : d.toLocaleDateString([], { month: "short", day: "numeric" });
+}
+
+function renderHistory() {
+    const list = $("historyList");
+    list.textContent = "";
+    const items = loadHistory();
+
+    if (!items.length) {
+        const note = document.createElement("li");
+        note.className = "empty-note";
+        note.textContent = "No past conversations yet. Ask something in Chat and it will show up here.";
+        list.appendChild(note);
+        return;
+    }
+
+    items.forEach(function (item) {
+        const li = document.createElement("li");
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "history-item";
+
+        const title = document.createElement("span");
+        title.className = "title";
+        title.textContent = item.title || "Conversation";
+
+        const meta = document.createElement("span");
+        meta.className = "meta";
+        const count = item.messages.filter(function (m) { return m.sender === "user"; }).length;
+        meta.textContent = formatWhen(item.updatedAt) + " · " + count + (count === 1 ? " question" : " questions");
+
+        btn.append(title, meta);
+        btn.addEventListener("click", function () { openHistoryChat(item); });
+        li.appendChild(btn);
+        list.appendChild(li);
+    });
+}
+
+function openHistoryChat(item) {
+    cancelListening();
+    stopSpeaking();
+    currentChatId = item.id;
+    currentMessages = item.messages.slice();
+    hasUserMessage = currentMessages.some(function (m) { return m.sender === "user"; });
+    log.textContent = "";
+    currentMessages.forEach(function (m) {
+        addMessage(m.text, m.sender, { plain: m.plain, error: m.error, question: m.question });
+    });
+    setView("chat");
+}
+
+$("tabHistory").addEventListener("click", function () { setView("history"); });
+$("clearHistoryBtn").addEventListener("click", function () {
+    if (!confirm("Clear all saved conversations on this device? This cannot be undone.")) return;
+    localStorage.removeItem(HISTORY_KEY);
+    renderHistory();
+});
+
+/* ---------- Raise an HR case (saved on this device; also offers to email HR) ---------- */
+function generateCaseId() {
+    return "HR-" + Math.random().toString(36).slice(2, 8).toUpperCase();
+}
+
+function saveCase(record) {
+    try {
+        const all = JSON.parse(localStorage.getItem(CASES_KEY) || "[]");
+        all.unshift(record);
+        localStorage.setItem(CASES_KEY, JSON.stringify(all.slice(0, 100)));
+    } catch (e) { /* storage unavailable: ignore */ }
+}
+
+function openCaseForm() {
+    setView("chat");
+    addMessage("Let's raise an HR case. Choose a category and describe what happened.", "bot", { plain: true });
+
+    const wrap = document.createElement("div");
+    wrap.className = "msg bot case-form";
+
+    const catLabel = document.createElement("label");
+    catLabel.textContent = "Category";
+    catLabel.htmlFor = "caseCategory";
+    const select = document.createElement("select");
+    select.id = "caseCategory";
+    ["Harassment or bullying", "Discrimination", "Payroll issue", "Policy violation", "Workplace safety", "Other"]
+        .forEach(function (opt) {
+            const o = document.createElement("option");
+            o.value = opt; o.textContent = opt;
+            select.appendChild(o);
+        });
+
+    const descLabel = document.createElement("label");
+    descLabel.textContent = "What happened?";
+    descLabel.htmlFor = "caseDescription";
+    const textarea = document.createElement("textarea");
+    textarea.id = "caseDescription";
+    textarea.placeholder = "Describe the issue in your own words";
+
+    const error = document.createElement("div");
+    error.className = "form-error";
+    error.hidden = true;
+
+    const actions = document.createElement("div");
+    actions.className = "row-actions";
+    const cancelBtn = document.createElement("button");
+    cancelBtn.type = "button"; cancelBtn.className = "cancel-btn"; cancelBtn.textContent = "Cancel";
+    const submitBtn = document.createElement("button");
+    submitBtn.type = "button"; submitBtn.className = "submit-btn"; submitBtn.textContent = "Submit case";
+    actions.append(cancelBtn, submitBtn);
+
+    wrap.append(catLabel, select, descLabel, textarea, error, actions);
+    log.appendChild(wrap);
+    scrollToEnd();
+    textarea.focus();
+
+    cancelBtn.addEventListener("click", function () {
+        wrap.remove();
+        addMessage("No problem, the case wasn't submitted.", "bot", { plain: true });
+    });
+
+    submitBtn.addEventListener("click", function () {
+        const description = textarea.value.trim();
+        if (!description) {
+            error.textContent = "Please describe what happened before submitting.";
+            error.hidden = false;
+            textarea.focus();
+            return;
+        }
+        const record = {
+            id: generateCaseId(),
+            category: select.value,
+            description: description,
+            status: "Submitted",
+            date: new Date().toISOString()
+        };
+        saveCase(record);
+        wrap.remove();
+
+        const confirmationText = "Case " + record.id + " submitted (category: " + record.category + ").\n" +
+            "This is saved on this device only, since there's no HR login system yet. " +
+            "To make sure the HR team actually sees it, you can also email them below.";
+        const confirmation = addMessage(confirmationText, "bot", { plain: true });
+        recordMessage("bot", confirmationText, { plain: true });
+
+        const emailBtn = document.createElement("button");
+        emailBtn.type = "button";
+        emailBtn.className = "email-hr-btn";
+        emailBtn.innerHTML = '<svg class="icon" aria-hidden="true"><use href="#i-mail"/></svg>';
+        emailBtn.appendChild(document.createTextNode("Email HR about this case"));
+        emailBtn.addEventListener("click", function () {
+            const subject = encodeURIComponent("HR Case " + record.id + " - " + record.category);
+            const body = encodeURIComponent(record.description);
+            window.location.href = "mailto:" + HR_EMAIL + "?subject=" + subject + "&body=" + body;
+        });
+        confirmation.after(emailBtn);
+        scrollToEnd();
+    });
+}
+
+/* ---------- Policy documents: upload a PDF, ask questions answered from its text ---------- */
+let policyBusy = false;
+
+function policyIcon(name) { return icon(name); }
+
+function renderPolicyDocs(documents) {
+    const list = $("policyDocList");
+    list.textContent = "";
+    documents.forEach(function (doc) {
+        const li = document.createElement("li");
+        li.appendChild(policyIcon("file"));
+        const strong = document.createElement("strong");
+        strong.textContent = doc.name;
+        li.appendChild(strong);
+        li.appendChild(document.createTextNode(" — " + doc.chunk_count + (doc.chunk_count === 1 ? " section indexed" : " sections indexed")));
+        list.appendChild(li);
+    });
+}
+
+async function refreshPolicyDocs() {
+    try {
+        const res = await fetch("/policy/documents");
+        const data = await res.json();
+        renderPolicyDocs(data.documents || []);
+    } catch (e) { /* leave the list as-is if this fails */ }
+}
+
+async function uploadPolicyFile(file) {
+    const status = $("policyUploadStatus");
+    const uploadBtn = $("policyUploadBtn");
+    status.className = "upload-status";
+    status.textContent = "Uploading " + file.name + "...";
+    uploadBtn.disabled = true;
+
+    const form = new FormData();
+    form.append("file", file);
+
+    try {
+        const res = await fetch("/policy/upload", { method: "POST", body: form });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.detail || "Upload failed.");
+        status.textContent = "Added " + data.name + " (" + data.chunks + " sections).";
+        await refreshPolicyDocs();
+    } catch (e) {
+        status.className = "upload-status error";
+        status.textContent = e.message || "Couldn't upload that file.";
+    } finally {
+        uploadBtn.disabled = false;
+    }
+}
+
+function addPolicyMessage(text, sender) {
+    const wrap = document.createElement("div");
+    wrap.className = "msg " + sender;
+    const body = document.createElement("div");
+    body.className = "body";
+    body.textContent = text;
+    wrap.appendChild(body);
+    $("policyLog").appendChild(wrap);
+    wrap.scrollIntoView({ block: "nearest" });
+    return wrap;
+}
+
+async function askPolicy(question) {
+    question = question.trim();
+    if (!question || policyBusy) return;
+    policyBusy = true;
+    $("policySendBtn").disabled = true;
+
+    addPolicyMessage(question, "user");
+    $("policyInput").value = "";
+    const typing = addPolicyMessage("...", "bot");
+
+    try {
+        const res = await fetch("/policy/ask", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ question: question })
+        });
+        const data = await res.json();
+        typing.querySelector(".body").textContent = data.answer
+            ? data.answer + "\n\n— from " + data.source
+            : (data.message || "I couldn't find anything about that in the uploaded documents.");
+    } catch (e) {
+        typing.querySelector(".body").textContent = "Couldn't reach the server. Check your connection and try again.";
+    } finally {
+        policyBusy = false;
+        $("policySendBtn").disabled = false;
+        $("policyInput").focus();
+    }
+}
+
+$("policyUploadBtn").addEventListener("click", function () { $("policyFileInput").click(); });
+$("policyFileInput").addEventListener("change", function () {
+    if (this.files[0]) uploadPolicyFile(this.files[0]);
+    this.value = "";
+});
+$("policyComposer").addEventListener("submit", function (event) {
+    event.preventDefault();
+    askPolicy($("policyInput").value);
+});
+$("policyBackBtn").addEventListener("click", function () { setView("home"); });
+
 /* ---------- build the cards ---------- */
-function buildCard(item, soon) {
+function buildCard(item) {
     const li = document.createElement("li");
     const btn = document.createElement("button");
     btn.type = "button";
@@ -1073,12 +1556,10 @@ function buildCard(item, soon) {
 
     btn.append(tile, name, desc);
 
-    if (soon) {
-        btn.disabled = true;
-        const tag = document.createElement("span");
-        tag.className = "soon";
-        tag.textContent = "Coming soon";
-        btn.appendChild(tag);
+    if (item.action === "case") {
+        btn.addEventListener("click", openCaseForm);
+    } else if (item.action === "policy") {
+        btn.addEventListener("click", function () { setView("policy"); });
     } else {
         btn.dataset.question = item.question;
         btn.addEventListener("click", function () { send(item.question); });
@@ -1088,8 +1569,7 @@ function buildCard(item, soon) {
     return li;
 }
 
-TOPICS.forEach(function (t) { $("topicCards").appendChild(buildCard(t, false)); });
-SOON.forEach(function (t) { $("soonCards").appendChild(buildCard(t, true)); });
+TOPICS.forEach(function (t) { $("topicCards").appendChild(buildCard(t)); });
 
 /* ---------- wiring ---------- */
 $("composer").addEventListener("submit", function (event) {

@@ -1,7 +1,7 @@
 from pathlib import Path
 import random
 
-from fastapi import FastAPI
+from fastapi import FastAPI, File, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from pydantic import BaseModel
@@ -9,11 +9,13 @@ from pydantic import BaseModel
 try:
     from . import preprocess as nlp                     # uvicorn backend.main:app (from the project root)
     from . import entities
+    from . import policy_search
     from .classifier import IntentClassifier
     from .training_data import TRAINING_DATA
 except ImportError:
     import preprocess as nlp                            # uvicorn main:app (from inside backend/)
     import entities
+    import policy_search
     from classifier import IntentClassifier
     from training_data import TRAINING_DATA
 
@@ -54,6 +56,13 @@ MAX_MESSAGE_LENGTH = 500
 class ChatRequest(BaseModel):
     message: str
     employee_id: str | None = None
+
+
+class PolicyQuestion(BaseModel):
+    question: str
+
+
+MAX_PDF_BYTES = 5 * 1024 * 1024   # 5 MB, enough for a typical HR policy document
 
 
 # 🧠 INTENTS
@@ -425,3 +434,46 @@ def chat(request: ChatRequest):
     employee_id = request.employee_id[:20] if request.employee_id else None
     response = get_response(user_message, employee_id)
     return {"response": response}
+
+
+# Policy Documents: upload a PDF, then ask questions answered from its text (TF-IDF retrieval,
+# not a generative model). Kept in memory only - see policy_search.py for why.
+@app.post("/policy/upload")
+async def upload_policy(file: UploadFile = File(...)):
+    if not file.filename.lower().endswith(".pdf"):
+        raise HTTPException(400, "Please upload a PDF file.")
+
+    data = await file.read()
+    if len(data) > MAX_PDF_BYTES:
+        raise HTTPException(400, "That file is too large. The limit is 5 MB.")
+
+    try:
+        text = policy_search.extract_text(data)
+    except Exception:
+        raise HTTPException(400, "Couldn't read that PDF. It may be corrupted or password-protected.")
+
+    if not text.strip():
+        raise HTTPException(400, "No selectable text was found in that PDF (it may be a scanned image).")
+
+    chunk_count = policy_search.POLICY_INDEX.add_document(file.filename, text)
+    return {"name": file.filename, "chunks": chunk_count}
+
+
+@app.get("/policy/documents")
+def list_policy_documents():
+    return {"documents": policy_search.POLICY_INDEX.documents}
+
+
+@app.post("/policy/ask")
+def ask_policy(payload: PolicyQuestion):
+    question = payload.question[:MAX_MESSAGE_LENGTH]
+
+    if not policy_search.POLICY_INDEX.has_documents():
+        return {"answer": None, "message": "No policy documents have been uploaded yet. Upload a PDF first."}
+
+    results = policy_search.POLICY_INDEX.search(question)
+    if not results:
+        return {"answer": None, "message": "I couldn't find anything about that in the uploaded documents."}
+
+    top = results[0]
+    return {"answer": top["text"], "source": top["source"], "score": round(top["score"], 2)}

@@ -11,6 +11,8 @@ nltk==3.10.3
 numpy==2.5.3
 pydantic==2.12.5
 pydantic_core==2.41.5
+pypdf==5.1.0
+python-multipart==0.0.32
 regex==2026.9.10
 scikit-learn==1.9.1
 scipy==1.18.1
